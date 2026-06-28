@@ -1,0 +1,66 @@
+app:
+  name: "huawei_bts_file_ingestion"
+  environment: "prod"
+  timezone: "UTC"
+  detailed_logging: true
+
+catalog:
+  vendor: "Huawei"
+  generation: "LTE"
+  root_input_dir: "./data/incoming/Huawei/LTE"
+  root_archive_dir: "./data/archive/Huawei/LTE"
+  recursive_scan: true
+  allowed_extensions: [".csv"]
+  filename_patterns: ["*.csv"]
+  segments:
+    Macro: ["BTS3900", "BTS5900", "DBS3900", "DBS5900"]
+    Micro: ["BTS3900_Micro", "DBS3900_Micro", "DBS5900_Micro"]
+    Pico: ["PicoBTS3900", "PicoBTS5900"]
+    Indoor: ["LampSite", "MetroCell"]
+    Outdoor: ["RRU_Based"]
+
+logging:
+  level: "debug"
+  format: "json"
+
+  local_daily:
+    enabled: true
+    split_by_catalog_node: true
+    roots:
+      app: "./logs/app"
+      errors: "./logs/errors"
+      md5: "./logs/md5"
+    file_name_pattern:
+      app: "app-%Y-%m-%d.log"
+      errors: "errors-%Y-%m-%d.log"
+      md5: "md5-%Y-%m-%d.log"
+
+  global_monthly:
+    enabled: true
+    roots:
+      app: "./logs/global/app"
+      errors: "./logs/global/errors"
+      md5: "./logs/global/md5"
+    file_name_pattern:
+      app: "global-app-%Y-%m.log"
+      errors: "global-errors-%Y-%m.log"
+      md5: "global-md5-%Y-%m.log"
+
+deduplication:
+  enabled: true
+  algorithm: "md5"
+  skip_if_already_success: true
+
+md5_registry:
+  backend: "postgresql"
+  table: "md5_registry"
+  stale_in_progress_ttl_min: 120
+
+database:
+  type: "postgresql"
+  host: "127.0.0.1"
+  port: 5432
+  dbname: "ingestion"
+  schema: "public"
+  user: "ingest_user"
+  password_env: "DB_PASSWORD"
